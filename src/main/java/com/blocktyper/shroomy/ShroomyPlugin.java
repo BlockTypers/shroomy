@@ -1,5 +1,11 @@
 package com.blocktyper.shroomy;
 
+/*
+ * License: https://www.gnu.org/licenses/gpl-3.0.en.html
+ * Source: https://github.com/spaarkimus/shroomy
+ * dev.bukkit: https://dev.bukkit.org/bukkit-plugins/shroomy/
+ */
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Date;
