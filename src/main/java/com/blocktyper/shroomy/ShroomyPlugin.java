@@ -56,6 +56,8 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	private int popperSlowMagnitude;
 
 	private Map<String, Date> lastTimePopperWasClickedMap;
+	
+	private boolean bundleLoadFailed = false;
 
 	public void onEnable() {
 		createConfig();
@@ -242,9 +244,41 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	private String LOCALIZED_KEY_TOO_SOON_TO_POP = "mushroom.pop.too.soon";
 	private String LOCALIZED_KEY_ROASTED_MUSHROOM = "mushroom.roasted";
 	private Locale defaultLocale = Locale.getDefault();
-	private ResourceBundle bundle = ResourceBundle.getBundle("Messages", defaultLocale);
+	private ResourceBundle bundle = null;
 
 	private String getLocalizedMessage(String key) {
+		
+		if(bundleLoadFailed){
+			return key;
+		}
+		
+		if(bundle == null){
+			try {
+				bundle = ResourceBundle.getBundle("Messages", defaultLocale);
+			} catch (Exception e) {
+				getLogger().warning("Messages bundle did not load successfully from default location.");
+			}
+			if(bundle == null){
+				getLogger().info("Checking for Messages bundle in secondary location (resources/Messages).");
+				try {
+					bundle = ResourceBundle.getBundle("resources/Messages", defaultLocale);
+				} catch (Exception e) {
+					getLogger().warning("Messages bundle did not load successfully from secondary location (resources/Messages).");
+				}
+				
+				if(bundle == null){
+					getLogger().warning("Messages will appear as dot separated key names.  Please remove this plugin from your plugin folder if this behaviour is not desired.");
+					bundleLoadFailed = true;
+					return key;
+				}else{
+					getLogger().info("Messages bundle loaded successfully from secondary location (resources/Messages).");
+				}
+			}else{
+				getLogger().info("Messages bundle loaded successfully from default location.");
+			}
+		}
+		
+		
 		String value = bundle.getString(key);
 		try {
 			value = key != null ? (value != null && !value.trim().isEmpty() ? value : key) : "null key";
