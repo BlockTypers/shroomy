@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,6 +28,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import com.earth2me.essentials.Essentials;
 
 public class ShroomyPlugin extends JavaPlugin implements Listener {
 
@@ -121,7 +124,6 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 			getServer().addRecipe(new FurnaceRecipe(new ItemStack(resultMaterial), Material.RED_MUSHROOM));
 			getServer().addRecipe(new FurnaceRecipe(new ItemStack(resultMaterial), Material.BROWN_MUSHROOM));
 		}
-
 	}
 
 	// begin
@@ -243,7 +245,7 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	// begin localization
 	private String LOCALIZED_KEY_TOO_SOON_TO_POP = "mushroom.pop.too.soon";
 	private String LOCALIZED_KEY_ROASTED_MUSHROOM = "mushroom.roasted";
-	private Locale defaultLocale = Locale.getDefault();
+	private Locale locale = null;
 	private ResourceBundle bundle = null;
 
 	private String getLocalizedMessage(String key) {
@@ -253,17 +255,69 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 		}
 		
 		if(bundle == null){
+			
+			
+			getLogger().info("Checking for Essentials.");
+			Essentials essentials = null;
+			
 			try {
-				bundle = ResourceBundle.getBundle("Messages", defaultLocale);
+				essentials = (Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials");
+			} catch (Exception e1) {
+				getLogger().info("Error loading Essentials: " + e1.getMessage());
+			}
+			
+			String localeFromEssentials = null;
+			if(essentials != null){
+				getLogger().info("Essentials found.");
+				localeFromEssentials = essentials.getSettings().getLocale();
+			}else{
+				getLogger().info("Essentials not found.");
+			}
+			
+			if(localeFromEssentials != null && !localeFromEssentials.trim().isEmpty()){
+				getLogger().info("Using locale from Essentials config: " + localeFromEssentials);
+				try {
+					if(localeFromEssentials.contains("_")){
+						String language = localeFromEssentials.substring(0, localeFromEssentials.indexOf("_"));
+						getLogger().info("language: " + language);
+						String country = null;
+						if(localeFromEssentials.length() > language.length()){
+							country = localeFromEssentials.substring(language.length() + 1);
+							getLogger().info("country: " + country);
+						}
+						if(country == null){
+							locale = Locale.forLanguageTag(language);
+						}else{
+							locale = new Locale(language, country);
+						}
+					}else{
+						locale = Locale.forLanguageTag(localeFromEssentials);
+					}
+					
+				} catch (Exception e) {
+					getLogger().info("Error using locale from Essentials config: " + e.getMessage());
+				}
+			}else{
+				getLogger().info("Locale not set in Essentials config.");
+			}
+			
+			if(locale == null){
+				getLogger().info("Using default locale.");
+				locale = Locale.getDefault();
+			}
+			getLogger().info("Language set: " + locale.getLanguage());
+			
+			try {
+				bundle = ResourceBundle.getBundle("resources/Messages", locale);
 			} catch (Exception e) {
 				getLogger().warning("Messages bundle did not load successfully from default location.");
 			}
 			if(bundle == null){
-				getLogger().info("Checking for Messages bundle in secondary location (resources/Messages).");
+				getLogger().info("Checking for Messages bundle in secondary location.");
 				try {
-					bundle = ResourceBundle.getBundle("resources/Messages", defaultLocale);
+					bundle = ResourceBundle.getBundle("Messages", locale);
 				} catch (Exception e) {
-					getLogger().warning("Messages bundle did not load successfully from secondary location (resources/Messages).");
+					getLogger().warning("Messages bundle did not load successfully from secondary location.");
 				}
 				
 				if(bundle == null){
@@ -271,7 +325,7 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 					bundleLoadFailed = true;
 					return key;
 				}else{
-					getLogger().info("Messages bundle loaded successfully from secondary location (resources/Messages).");
+					getLogger().info("Messages bundle loaded successfully from secondary location.");
 				}
 			}else{
 				getLogger().info("Messages bundle loaded successfully from default location.");
