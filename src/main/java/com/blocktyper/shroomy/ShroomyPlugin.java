@@ -257,48 +257,57 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 		if(bundle == null){
 			
 			
-			getLogger().info("Checking for Essentials.");
-			Essentials essentials = null;
-			
 			try {
-				essentials = (Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials");
-			} catch (Exception e1) {
-				getLogger().info("Error loading Essentials: " + e1.getMessage());
-			}
-			
-			String localeFromEssentials = null;
-			if(essentials != null){
-				getLogger().info("Essentials found.");
-				localeFromEssentials = essentials.getSettings().getLocale();
-			}else{
-				getLogger().info("Essentials not found.");
-			}
-			
-			if(localeFromEssentials != null && !localeFromEssentials.trim().isEmpty()){
-				getLogger().info("Using locale from Essentials config: " + localeFromEssentials);
+				getLogger().info("Checking for Essentials.");
+				Essentials essentials = null;
+				
 				try {
-					if(localeFromEssentials.contains("_")){
-						String language = localeFromEssentials.substring(0, localeFromEssentials.indexOf("_"));
-						getLogger().info("language: " + language);
-						String country = null;
-						if(localeFromEssentials.length() > language.length()){
-							country = localeFromEssentials.substring(language.length() + 1);
-							getLogger().info("country: " + country);
-						}
-						if(country == null){
-							locale = Locale.forLanguageTag(language);
-						}else{
-							locale = new Locale(language, country);
-						}
+					essentials = (Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials");
+				} catch (Exception e1) {
+					getLogger().info("Error loading Essentials: " + e1.getMessage());
+				}
+				
+				String localeFromEssentials = null;
+				if(essentials != null){
+					getLogger().info("Essentials found.");
+					if(essentials.getSettings() == null){
+						getLogger().info("Essentials settings was not found.");
 					}else{
-						locale = Locale.forLanguageTag(localeFromEssentials);
+						localeFromEssentials = essentials.getSettings().getLocale();
 					}
 					
-				} catch (Exception e) {
-					getLogger().info("Error using locale from Essentials config: " + e.getMessage());
+				}else{
+					getLogger().info("Essentials not found.");
 				}
-			}else{
-				getLogger().info("Locale not set in Essentials config.");
+				
+				if(localeFromEssentials != null && !localeFromEssentials.trim().isEmpty()){
+					getLogger().info("Using locale from Essentials config: " + localeFromEssentials);
+					try {
+						if(localeFromEssentials.contains("_")){
+							String language = localeFromEssentials.substring(0, localeFromEssentials.indexOf("_"));
+							getLogger().info("language: " + language);
+							String country = null;
+							if(localeFromEssentials.length() > language.length()){
+								country = localeFromEssentials.substring(language.length() + 1);
+								getLogger().info("country: " + country);
+							}
+							if(country == null){
+								locale = Locale.forLanguageTag(language);
+							}else{
+								locale = new Locale(language, country);
+							}
+						}else{
+							locale = Locale.forLanguageTag(localeFromEssentials);
+						}
+						
+					} catch (Exception e) {
+						getLogger().info("Error using locale from Essentials config: " + e.getMessage());
+					}
+				}else{
+					getLogger().info("Locale not set in Essentials config.");
+				}
+			} catch (Exception e1) {
+				getLogger().info("Unexpected error while trying to load the locale: " + e1.getMessage());
 			}
 			
 			if(locale == null){
