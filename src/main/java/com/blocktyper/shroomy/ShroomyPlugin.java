@@ -67,7 +67,7 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	public void onEnable() {
 		createConfig();
 		File pluginFile = getFile();
-		localeHelper = new LocaleHelper(getLogger(), pluginFile != null ? pluginFile.getParentFile() : null);
+		localeHelper = new LocaleHelper(getLogger(), pluginFile != null ? pluginFile.getParentFile() : null, "ShroomyMessages");
 		getServer().getPluginManager().registerEvents(this, this);
 
 		roastedMushroomName = getLocalizedMessage(LOCALIZED_KEY_ROASTED_MUSHROOM);
