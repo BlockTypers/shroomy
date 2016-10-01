@@ -10,11 +10,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,10 +22,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import com.blocktyper.localehelper.LocaleHelper;
+
 
 public class ShroomyPlugin extends JavaPlugin implements Listener {
 
@@ -58,11 +57,17 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	private int popperSlowMagnitude;
 
 	private Map<String, Date> lastTimePopperWasClickedMap;
+	
+	private LocaleHelper localeHelper = null;
 
-	private boolean bundleLoadFailed = false;
-
+	private String getLocalizedMessage(String key){
+		return localeHelper == null ? key : localeHelper.getLocalizedMessage(key);
+	}
+	
 	public void onEnable() {
 		createConfig();
+		File pluginFile = getFile();
+		localeHelper = new LocaleHelper(getLogger(), pluginFile != null ? pluginFile.getParentFile() : null);
 		getServer().getPluginManager().registerEvents(this, this);
 
 		roastedMushroomName = getLocalizedMessage(LOCALIZED_KEY_ROASTED_MUSHROOM);
@@ -243,110 +248,6 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	// begin localization
 	private String LOCALIZED_KEY_TOO_SOON_TO_POP = "mushroom.pop.too.soon";
 	private String LOCALIZED_KEY_ROASTED_MUSHROOM = "mushroom.roasted";
-	private Locale locale = null;
-	private ResourceBundle bundle = null;
 
-	private String getLocalizedMessage(String key) {
-
-		if (bundleLoadFailed) {
-			return key;
-		}
-
-		if (bundle == null) {
-
-			try {
-				getLogger().info("Checking for Essentials.");
-				Plugin essentials = null;
-
-				try {
-					essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
-				} catch (Exception e1) {
-					getLogger().info("Error loading Essentials: " + e1.getMessage());
-				}
-
-				String localeFromEssentials = null;
-				if (essentials != null) {
-					getLogger().info("Essentials found.");
-					if (essentials.getConfig() == null) {
-						getLogger().info("Essentials config was not found.");
-					} else {
-						localeFromEssentials = essentials.getConfig().getString("locale");
-					}
-
-					if (localeFromEssentials != null && !localeFromEssentials.trim().isEmpty()) {
-						getLogger().info("Using locale from Essentials config: " + localeFromEssentials);
-						try {
-							if (localeFromEssentials.contains("_")) {
-								String language = localeFromEssentials.substring(0, localeFromEssentials.indexOf("_"));
-								getLogger().info("language: " + language);
-								String country = null;
-								if (localeFromEssentials.length() > language.length()) {
-									country = localeFromEssentials.substring(language.length() + 1);
-									getLogger().info("country: " + country);
-								}
-								if (country == null) {
-									locale = Locale.forLanguageTag(language);
-								} else {
-									locale = new Locale(language, country);
-								}
-							} else {
-								locale = Locale.forLanguageTag(localeFromEssentials);
-							}
-
-						} catch (Exception e) {
-							getLogger().info("Error using locale from Essentials config: " + e.getMessage());
-						}
-					} else {
-						getLogger().info("Locale not set in Essentials config.");
-					}
-
-				} else {
-					getLogger().info("Essentials not found.");
-				}
-
-			} catch (Exception e1) {
-				getLogger().info("Unexpected error while trying to load the locale: " + e1.getMessage());
-			}
-
-			if (locale == null) {
-				getLogger().info("Using default locale.");
-				locale = Locale.getDefault();
-			}
-			getLogger().info("Language set: " + locale.getLanguage());
-
-			try {
-				bundle = ResourceBundle.getBundle("resources/Messages", locale);
-			} catch (Exception e) {
-				getLogger().warning("Messages bundle did not load successfully from default location.");
-			}
-			if (bundle == null) {
-				getLogger().info("Checking for Messages bundle in secondary location.");
-				try {
-					bundle = ResourceBundle.getBundle("Messages", locale);
-				} catch (Exception e) {
-					getLogger().warning("Messages bundle did not load successfully from secondary location.");
-				}
-
-				if (bundle == null) {
-					getLogger().warning(
-							"Messages will appear as dot separated key names.  Please remove this plugin from your plugin folder if this behaviour is not desired.");
-					bundleLoadFailed = true;
-					return key;
-				} else {
-					getLogger().info("Messages bundle loaded successfully from secondary location.");
-				}
-			} else {
-				getLogger().info("Messages bundle loaded successfully from default location.");
-			}
-		}
-
-		String value = bundle.getString(key);
-		try {
-			value = key != null ? (value != null && !value.trim().isEmpty() ? value : key) : "null key";
-		} catch (Exception e) {
-			value = "error value";
-		}
-		return value;
-	}
 	// end localization
 }

@@ -1,0 +1,7 @@
+name: Shroomy
+version: 0.1
+main:  com.blocktyper.shroomy.ShroomyPlugin
+author: spaarkimus
+website: blocktyper.com
+database: false
+description: Cook mushrooms in furnaces to create "Roasted mushrooms".
