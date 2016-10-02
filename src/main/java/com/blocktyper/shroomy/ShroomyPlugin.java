@@ -10,7 +10,9 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
@@ -27,7 +29,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import com.blocktyper.localehelper.LocaleHelper;
-
 
 public class ShroomyPlugin extends JavaPlugin implements Listener {
 
@@ -57,17 +58,12 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	private int popperSlowMagnitude;
 
 	private Map<String, Date> lastTimePopperWasClickedMap;
-	
-	private LocaleHelper localeHelper = null;
 
-	private String getLocalizedMessage(String key){
-		return localeHelper == null ? key : localeHelper.getLocalizedMessage(key);
-	}
-	
 	public void onEnable() {
 		createConfig();
-		File pluginFile = getFile();
-		localeHelper = new LocaleHelper(getLogger(), pluginFile != null ? pluginFile.getParentFile() : null, "ShroomyMessages");
+		resourceName = "com.blocktyper.shroomy.resources.ShroomyMessages";
+		locale = new LocaleHelper(getLogger(), getFile() != null ? getFile().getParentFile() : null).getLocale();
+
 		getServer().getPluginManager().registerEvents(this, this);
 
 		roastedMushroomName = getLocalizedMessage(LOCALIZED_KEY_ROASTED_MUSHROOM);
@@ -248,6 +244,52 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 	// begin localization
 	private String LOCALIZED_KEY_TOO_SOON_TO_POP = "mushroom.pop.too.soon";
 	private String LOCALIZED_KEY_ROASTED_MUSHROOM = "mushroom.roasted";
+
+	private Locale locale = null;
+	private ResourceBundle bundle = null;
+	private boolean bundleLoadFailed = false;
+	private String resourceName;
+
+	public String getLocalizedMessage(String key) {
+
+		String value = key;
+		try {
+			if (bundle == null) {
+
+				if (locale == null) {
+					getLogger().info("Using default locale.");
+					locale = Locale.getDefault();
+				}
+
+				try {
+					bundle = ResourceBundle.getBundle(resourceName, locale);
+				} catch (Exception e) {
+					getLogger().warning(resourceName + " bundle did not load successfully.");
+				}
+
+				if (bundle == null) {
+					getLogger().warning(
+							"Messages will appear as dot separated key names.  Please remove this plugin from your plugin folder if this behaviour is not desired.");
+					bundleLoadFailed = true;
+					return key;
+				} else {
+					getLogger().info(resourceName + " bundle loaded successfully.");
+				}
+			}
+
+			if (bundleLoadFailed) {
+				return key;
+			}
+
+			value = bundle.getString(key);
+
+			value = key != null ? (value != null && !value.trim().isEmpty() ? value : key) : "null key";
+		} catch (Exception e) {
+			getLogger().warning(
+					"Unexpected error getting localized string for key(" + key + "). Message: " + e.getMessage());
+		}
+		return value;
+	}
 
 	// end localization
 }

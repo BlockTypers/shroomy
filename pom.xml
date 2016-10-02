@@ -5,7 +5,7 @@
 	<artifactId>shroomy</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Shroomy</name>
-
+	<packaging>jar</packaging>
 
 	<repositories>
 		<repository>
@@ -13,6 +13,7 @@
 			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
 	</repositories>
+
 	<dependencies>
 		<!--Spigot API -->
 		<dependency>
@@ -38,8 +39,31 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<targetPath>com/blocktyper/shroomy/resources</targetPath>
+				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+				<excludes>
+					<exclude>plugin.yml</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>plugin.yml</include>
+				</includes>
+				<excludes>
+					<exclude>**/*.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
 		<plugins>
-			<!-- any other plugins -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
