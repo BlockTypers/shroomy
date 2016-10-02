@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -183,12 +184,20 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 					return;
 				}
 			}
+			
+			if(event.getPlayer().getFoodLevel() <= 0 && popperFoodLevelDelta < 0){
+				event.getPlayer().sendMessage(getLocalizedMessage(LOCALIZED_KEY_NEGATIVE_ENERGY));
+				return;
+			}
 
 			int newFoodLevel = event.getPlayer().getFoodLevel() + popperFoodLevelDelta;
 
 			if (newFoodLevel > MAX_FOOD_LEVEL) {
 				event.getPlayer().setFoodLevel(MAX_FOOD_LEVEL);
-			} else {
+			} else if(newFoodLevel < 0){
+				event.getPlayer().setFoodLevel(0);
+				return;
+			}else{
 				event.getPlayer().setFoodLevel(newFoodLevel);
 			}
 
@@ -204,6 +213,9 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 				event.getPlayer().getEquipment().getItemInMainHand().setAmount(amount - 1);
 			}
 			lastTimePopperWasClickedMap.put(playerName, now);
+			
+			event.getPlayer().getWorld().playSound(event.getPlayer().getLocation(), Sound.ENTITY_GENERIC_EAT, 1, 1);
+			
 		} catch (Exception e) {
 			getLogger().warning("issue eating Roasted mushroom popper: " + e.getMessage());
 		}
@@ -243,6 +255,7 @@ public class ShroomyPlugin extends JavaPlugin implements Listener {
 
 	// begin localization
 	private String LOCALIZED_KEY_TOO_SOON_TO_POP = "mushroom.pop.too.soon";
+	private String LOCALIZED_KEY_NEGATIVE_ENERGY = "mushroom.pop.negative.energy";
 	private String LOCALIZED_KEY_ROASTED_MUSHROOM = "mushroom.roasted";
 
 	private Locale locale = null;
